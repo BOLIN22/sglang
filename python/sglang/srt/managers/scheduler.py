@@ -2033,6 +2033,7 @@ class Scheduler(
             self.schedule_stream.wait_stream(self.forward_stream)
 
     @DynamicGradMode()
+    # learning notes
     def event_loop_normal(self):
         """A normal scheduler loop."""
         while True:
