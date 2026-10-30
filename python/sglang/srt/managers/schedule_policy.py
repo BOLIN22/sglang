@@ -1358,6 +1358,7 @@ class PrefillAdder:
     def add_one_req(
         self, req: Req, has_chunked_req: bool, truncation_align_size: Optional[int]
     ):
+        # 如果设置了单个Prefil batch的请求数上限，而且本轮已经选够，就停止接纳当前这个候选请求
         if (x := self.prefill_max_requests) is not None and len(self.can_run_list) >= x:
             return AddReqResult.OTHER
 
