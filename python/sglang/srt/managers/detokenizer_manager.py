@@ -325,12 +325,12 @@ class DetokenizerManager(MultiHttpWorkerDetokenizerMixin):
                     read_offset=recv_obj.read_offsets[i],
                 )
                 self.decode_status[rid] = s
-            else:
+            else:    # 对于已经存在解码状态的请求，新收到的token IDs被追加到这个请求的s.decode_ids末尾
                 s = self.decode_status[rid]
                 s.decode_ids.extend(
                     self._clamp_decode_ids(recv_obj.decode_ids[i], vocab_size)
                 )
-
+            # 从surr_offset一直取到数组末尾
             read_ids.append(
                 self.trim_matched_stop(
                     s.decode_ids[s.surr_offset :],
@@ -338,11 +338,12 @@ class DetokenizerManager(MultiHttpWorkerDetokenizerMixin):
                     recv_obj.no_stop_trim[i],
                 )
             )
+            # 从同一个起点开始，但只取到read_offset，不包含该位置，因此只要后续token已经追加到数组末尾，read_dis[i]就会把这些尾部token包含进去
             surr_ids.append(s.decode_ids[s.surr_offset : s.read_offset])
 
         # Decode token ids to strings
-        if not self.disable_tokenizer_batch_decode:
-            surr_texts = self._grouped_batch_decode(
+        if not self.disable_tokenizer_batch_decode:    # 是否禁用tokenizer的批量解码
+            surr_texts = self._grouped_batch_decode(    # 通过辅助函数组织批量解码
                 surr_ids,
                 recv_obj.skip_special_tokens,
                 recv_obj.spaces_between_special_tokens,
@@ -352,7 +353,7 @@ class DetokenizerManager(MultiHttpWorkerDetokenizerMixin):
                 recv_obj.skip_special_tokens,
                 recv_obj.spaces_between_special_tokens,
             )
-        else:
+        else:    # 明确逐条调用decode()
             # Do not use batch decode to prevent some detokenization edge cases (e.g., gpt-oss).
             surr_texts = [
                 self.tokenizer.decode(
