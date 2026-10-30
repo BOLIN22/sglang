@@ -215,8 +215,8 @@ class TorchNativeAttnBackend(AttentionBackend):
             # TODO: this loop process a sequence per iter, this is inefficient.
             # Need optimize the performance later.
 
-            seq_len_q = 1
-            seq_len_kv = seq_lens[seq_idx]
+            seq_len_q = 1  # 本轮只处理一个新输入token
+            seq_len_kv = seq_lens[seq_idx]    # KV长度为该请求当前的序列长度（attention使用的不只是这个新的token的K、V
             end_q = start_q + seq_len_q
             if encoder_lens is not None:
                 if is_cross_attn:
