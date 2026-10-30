@@ -266,9 +266,9 @@ class EagerRunner(BaseRunner):
             forward_context(get_forward_context(), forward_batch=forward_batch),
         ):
             return model_runner.model.forward(
-                forward_batch.input_ids,
-                forward_batch.positions,
-                forward_batch,
+                forward_batch.input_ids,    # 提供新的输入token
+                forward_batch.positions,    # 提供这些token的位置信息
+                forward_batch,              # 提供长度、请求索引、KV写入位置等执行信息
                 **kwargs,
             )
 
