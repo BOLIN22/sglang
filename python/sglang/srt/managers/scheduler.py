@@ -4558,6 +4558,7 @@ class Scheduler(
             batch.batch_is_full = False
             return batch
 
+        # 上一轮采样出一个token，并不代表这个token自己的KV已经计算出来，下一轮把这个token输入模型时，需要计算并保存它的KV，因此还要检查是否有足够空间
         kv_full_retract_flag = not batch.check_decode_mem()
         if kv_full_retract_flag and finishing_reqs:
             # The queued result frees the finishing requests' KV at the end of
