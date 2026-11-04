@@ -185,10 +185,10 @@ class DetokenizerManager(MultiHttpWorkerDetokenizerMixin):
         """The event loop that handles requests"""
         while True:
             with self.soft_watchdog.disable():
-                recv_obj = sock_recv(self.recv_from_scheduler)
-            output = self._request_dispatcher(recv_obj)
+                recv_obj = sock_recv(self.recv_from_scheduler)    # Detokenizer通过接收socket获取Scheduler发送的消息
+            output = self._request_dispatcher(recv_obj)           # 根据消息类型选择处理函数
             if output is not None:
-                sock_send(self.send_to_tokenizer, output)
+                sock_send(self.send_to_tokenizer, output)        # 发送给TokenizerManager
             self.soft_watchdog.feed()
 
     def trim_matched_stop(
@@ -459,6 +459,7 @@ class DetokenizerManager(MultiHttpWorkerDetokenizerMixin):
                 trim_matched_stop=self.trim_matched_stop,
             )
         # If handling idle batch, set output_strs to [].
+        # 首先得到文本
         output_strs = (
             self._decode_batch_token_id_output(recv_obj)
             if len(recv_obj.rids) > 0
@@ -466,11 +467,12 @@ class DetokenizerManager(MultiHttpWorkerDetokenizerMixin):
         )
         routed_experts = self._b64_encode_per_request(recv_obj.routed_experts)
         indexer_topk = self._b64_encode_per_request(recv_obj.indexer_topk)
+        # BatchStrOutput：包含文本结果以及请求生命周期信息的批量返回消息
         return BatchStrOutput(
-            rids=recv_obj.rids,
+            rids=recv_obj.rids,                            # 每个结果属于哪个请求
             http_worker_ipcs=recv_obj.http_worker_ipcs,
-            finished_reasons=recv_obj.finished_reasons,
-            output_strs=output_strs,
+            finished_reasons=recv_obj.finished_reasons,    # 每个请求是否结束，以及结束原因
+            output_strs=output_strs,                        # 每个请求的新增文本
             output_ids=recv_obj.output_ids,
             prompt_tokens=recv_obj.prompt_tokens,
             reasoning_tokens=recv_obj.reasoning_tokens,
